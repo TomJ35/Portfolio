@@ -62,7 +62,7 @@ close.onclick = () => panel.style.display = 'none';
 const loader = new GLTFLoader();
 const clickable = [];
 
-loader.load('./models/sceneV4.glb', (gltf) => {
+loader.load('/models/sceneV4.glb', (gltf) => {
     // Affichage pour debug des textures
     gltf.scene.traverse(o => {
         if (o.isMesh) console.log(o.material.map);
