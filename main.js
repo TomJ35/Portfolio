@@ -10,6 +10,9 @@ import {
     showDegreePopup
 } from "./popups.js";
 
+import { CAMERA_PRESETS } from "./cameraPresets.js";
+import { focusCamera, restoreCamera } from "./cameraManager.js";
+
 // ----- Scene, Camera, Renderer -----
 const scene = new THREE.Scene();
 scene.background = new THREE.Color(0xFFD394);
@@ -102,15 +105,21 @@ const POPUP_HANDLERS = {
 
 let popupOpen = false;
 
+// Ouverture d'une popup
 function openPopup(category, mesh) {
     if (popupOpen) return;
     popupOpen = true;
 
+    const preset = CAMERA_PRESETS[category];
+    if (preset) focusCamera(camera, controls, preset);
+
     POPUP_HANDLERS[category]?.(mesh);
 }
 
+// Fermeture d'une popup
 window.addEventListener("popup:closed", () => {
     popupOpen = false;
+    restoreCamera(camera, controls, CAMERA_PRESETS.Initial);
 });
 
 window.addEventListener('click', (event) => {
