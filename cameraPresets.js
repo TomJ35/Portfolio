@@ -18,6 +18,10 @@ export const CAMERA_PRESETS = {
         target: new THREE.Vector3(-2, 3.75, 1.5)
     },
     Degree: {
+        position: new THREE.Vector3(1.5, 3.5, 1),
+        target: new THREE.Vector3(1.5, 3.5, 1.5)
+    },
+    Contact: {
         position: new THREE.Vector3(-0.5, 3.5, 1),
         target: new THREE.Vector3(-1, 3.5, 1)
     }

@@ -78,3 +78,13 @@ export function showDegreePopup(mesh) {
         `
     );
 }
+
+export function showContactPopup(mesh) {
+    createPopup(
+        "Contact",
+        `
+        <p>Mail  : tom.jego35@gmail.com</p>
+        <p>Github : TomJ35</p>
+        `
+    );
+}

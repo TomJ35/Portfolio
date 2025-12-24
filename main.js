@@ -7,7 +7,8 @@ import {
     showCVPopup,
     showProjectPopup,
     showPassionPopup,
-    showDegreePopup
+    showDegreePopup,
+    showContactPopup
 } from "./popups.js";
 
 import { CAMERA_PRESETS } from "./cameraPresets.js";
@@ -69,7 +70,7 @@ close.onclick = () => panel.style.display = 'none';
 const loader = new GLTFLoader();
 const clickable = [];
 
-loader.load('/models/sceneV5.glb', (gltf) => {
+loader.load('/models/sceneV6.glb', (gltf) => {
 
     clickable.length = 0; // reset sécurité
 
@@ -87,7 +88,7 @@ loader.load('/models/sceneV5.glb', (gltf) => {
 
 // ----- Click Event -----
 
-const CATEGORIES = ["CV", "Project", "Passion", "Degree"];
+const CATEGORIES = ["CV", "Project", "Passion", "Degree", "Contact"];
 
 function getMeshCategory(meshName) {
     if (!meshName) return null;
@@ -101,6 +102,7 @@ const POPUP_HANDLERS = {
     Project: showProjectPopup,
     Passion: showPassionPopup,
     Degree: showDegreePopup,
+    Contact: showContactPopup,
 };
 
 let popupOpen = false;
