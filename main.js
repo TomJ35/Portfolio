@@ -3,9 +3,16 @@ import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
 import { GLTFLoader } from 'three/examples/jsm/loaders/GLTFLoader.js';
 
+import {
+    showCVPopup,
+    showProjectPopup,
+    showPassionPopup,
+    showDegreePopup
+} from "./popups.js";
+
 // ----- Scene, Camera, Renderer -----
 const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xffffff);
+scene.background = new THREE.Color(0xFFD394);
 
 const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
 const target = new THREE.Vector3(0, 2, 0);
@@ -16,9 +23,6 @@ const renderer = new THREE.WebGLRenderer({ antialias: true });
 renderer.setSize(window.innerWidth, window.innerHeight);
 document.body.appendChild(renderer.domElement);
 
-// ----- Axes helper -----
-const axesHelper = new THREE.AxesHelper(3);
-scene.add(axesHelper);
 
 // ----- Controls -----
 const controls = new OrbitControls(camera, renderer.domElement);
@@ -62,62 +66,77 @@ close.onclick = () => panel.style.display = 'none';
 const loader = new GLTFLoader();
 const clickable = [];
 
-loader.load('/models/sceneV4.glb', (gltf) => {
-    // Affichage pour debug des textures
-    gltf.scene.traverse(o => {
-        if (o.isMesh) console.log(o.material.map);
-    });
+loader.load('/models/sceneV5.glb', (gltf) => {
 
-    const objectsConfig = {
-        PC: { title: "PC", content: "C'est un pc" },
-        Sphere: { title: "Sphere", content: "C'est une sphère très ronde." },
-        Cube: { title: "Cube", content: "Un cube bien stable." },
-        Cylinder: { title: "Cylinder", content: "Un cylindre élégant." },
-        Torus: { title: "Torus", content: "Un anneau parfait." }
-    };
+    clickable.length = 0; // reset sécurité
 
-    gltf.scene.traverse((obj) => {
-        if (obj.isMesh && objectsConfig[obj.name]) {
-            clickable.push(obj);
-            obj.userData = {
-                title: objectsConfig[obj.name].title,
-                content: objectsConfig[obj.name].content
-            };
+    gltf.scene.traverse(obj => {
+        if (obj.isMesh) {
+            console.log("Mesh trouvé :", obj.name);
+            clickable.push(obj); // TEMPORAIRE : on rend TOUT cliquable
         }
     });
+
+    console.log("CLICKABLE FINAL :", clickable);
 
     scene.add(gltf.scene);
 });
 
 // ----- Click Event -----
+
+const CATEGORIES = ["CV", "Project", "Passion", "Degree"];
+
+function getMeshCategory(meshName) {
+    if (!meshName) return null;
+
+    const prefix = meshName.split(/[_\s]/)[0];
+    return CATEGORIES.includes(prefix) ? prefix : null;
+}
+
+const POPUP_HANDLERS = {
+    CV: showCVPopup,
+    Project: showProjectPopup,
+    Passion: showPassionPopup,
+    Degree: showDegreePopup,
+};
+
+let popupOpen = false;
+
+function openPopup(category, mesh) {
+    if (popupOpen) return;
+    popupOpen = true;
+
+    POPUP_HANDLERS[category]?.(mesh);
+}
+
+window.addEventListener("popup:closed", () => {
+    popupOpen = false;
+});
+
 window.addEventListener('click', (event) => {
     mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
     mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
 
     raycaster.setFromCamera(mouse, camera);
-    const intersects = raycaster.intersectObjects(clickable, true); // true pour tous les enfants
+    const intersects = raycaster.intersectObjects(clickable, true);
 
     if (intersects.length > 0) {
-        const obj = intersects[0].object;
-        const data = obj.userData;
+        const mesh = intersects[0].object;
 
-        // Popup
-        title.textContent = data.title;
-        content.textContent = data.content;
-        panel.style.display = 'block';
+        const category = getMeshCategory(mesh.name);
 
-        // Caméra animée vers l’objet sans casser les limites
-        gsap.to(camera.position, {
-            x: obj.position.x + 2,
-            y: obj.position.y + 2,
-            z: obj.position.z + 2,
-            duration: 1,
-            onUpdate: () => {
-                controls.update();
-            }
-        });
+        if (!category) {
+            console.log("Mesh ignoré :", mesh.name);
+            return;
+        }
+
+        console.log("Catégorie détectée :", category);
+
+        // Popup personnalisée
+        openPopup(category, mesh);
     }
 });
+
 
 // ----- Animation Loop -----
 function animate() {
