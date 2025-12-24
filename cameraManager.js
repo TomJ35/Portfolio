@@ -1,53 +1,77 @@
 import { gsap } from "gsap";
 import * as THREE from "three";
 
-// Déplace la caméra vers un preset avec trajectoire fluide
+let savedState = null;
+
+// Focus caméra sur un preset
 export function focusCamera(camera, controls, preset) {
-    // Verrouillage total
+    if (!savedState) {
+        savedState = {
+            position: camera.position.clone(),
+            target: controls.target.clone()
+        };
+    }
+
     controls.enableRotate = false;
     controls.enableZoom = false;
     controls.enablePan = false;
+    const prevDamping = controls.enableDamping;
+    controls.enableDamping = false; // désactive l'inertie pendant l'animation
 
-    // Animation vers le preset
+    // Déplacement simple de la position
     gsap.to(camera.position, {
+        duration: 2,
         x: preset.position.x,
         y: preset.position.y,
         z: preset.position.z,
-        duration: 1,
-        ease: "power2.out",
-        onUpdate: () => controls.update()
+        ease: "power2.inOut",
+        onUpdate: () => controls.update(),
+        onComplete: () => controls.enableDamping = prevDamping
     });
 
+    // Déplacement simple du target
     gsap.to(controls.target, {
+        duration: 2,
         x: preset.target.x,
         y: preset.target.y,
         z: preset.target.z,
-        duration: 1,
-        ease: "power2.out"
+        ease: "power2.inOut",
+        onUpdate: () => controls.update()
     });
-
-
-    // Blocage strict des angles pendant l’animation
-    const azimuth = Math.atan2(
-        preset.position.x - preset.target.x,
-        preset.position.z - preset.target.z
-    );
-    const distance = preset.position.distanceTo(preset.target);
-    const polar = Math.acos((preset.position.y - preset.target.y) / distance);
-    controls.minAzimuthAngle = azimuth;
-    controls.maxAzimuthAngle = azimuth;
-    controls.minPolarAngle = polar;
-    controls.maxPolarAngle = polar;
 }
 
+// Restaure la caméra à sa position initiale
+export function restoreCamera(camera, controls) {
+    if (!savedState) return;
 
-// Restaure la caméra à la position initiale
-export function restoreCamera(camera, controls, presetInitial) {
-    focusCamera(camera, controls, presetInitial);
-    // Réactivation rotation après animation
-    setTimeout(() => {
-        controls.enableRotate = true;
-        controls.enableZoom = false;
-        controls.enablePan = false;
-    }, 2000); // durée = même que focusCamera
+    controls.enableRotate = false;
+    controls.enableZoom = false;
+    controls.enablePan = false;
+    const prevDamping = controls.enableDamping;
+    controls.enableDamping = false;
+
+    gsap.to(camera.position, {
+        duration: 2,
+        x: savedState.position.x,
+        y: savedState.position.y,
+        z: savedState.position.z,
+        ease: "power2.inOut",
+        onUpdate: () => controls.update(),
+        onComplete: () => controls.enableDamping = prevDamping
+    });
+
+    gsap.to(controls.target, {
+        duration: 2,
+        x: savedState.target.x,
+        y: savedState.target.y,
+        z: savedState.target.z,
+        ease: "power2.inOut",
+        onUpdate: () => controls.update(),
+        onComplete: () => {
+            controls.enableRotate = true;
+            controls.enableZoom = false;
+            controls.enablePan = false;
+            savedState = null;
+        }
+    });
 }

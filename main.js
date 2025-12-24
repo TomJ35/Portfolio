@@ -119,7 +119,7 @@ function openPopup(category, mesh) {
 // Fermeture d'une popup
 window.addEventListener("popup:closed", () => {
     popupOpen = false;
-    restoreCamera(camera, controls, CAMERA_PRESETS.Initial);
+    restoreCamera(camera, controls);
 });
 
 window.addEventListener('click', (event) => {
